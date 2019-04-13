@@ -37,8 +37,8 @@ class BLEClient(BLEAdapter):
     def __init__(self, auth_id=None, key=None, port=None):
         self.auth_id = auth_id
         self.key     = key
-        #self.adapter = pygatt.GATTToolBackend()
-        self.adapter = pygatt.BGAPIBackend(serial_port=port)
+        self.adapter = pygatt.GATTToolBackend()
+        #self.adapter = pygatt.BGAPIBackend(serial_port=port)
         """
         reset_on_start = True
         retries        = 5

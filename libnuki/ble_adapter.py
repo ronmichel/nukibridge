@@ -73,7 +73,8 @@ class BLEAdapter(object):
             message = msg.encrypt_tx(self.auth_id, message, self.key)
             log.debug( 'send encrypted: ' + hexlify(message))
             message = self._format_tx(message)
-            self.device.char_write_handle_long(self.kts_usido_handle, message, self.chunk_size, True)
+            #self.device.char_write_handle_long(self.kts_usido_handle, message, self.chunk_size, True)
+            self.device.char_write_handle(self.kts_usido_handle, message, self.chunk_size, True)
 
 
     def send_unencrypted(self, message, wait_for_response=True):
@@ -85,7 +86,8 @@ class BLEAdapter(object):
             message = utils.add_crc(message)
             log.debug( 'send unencrypted: ' + hexlify(message))
             message = self._format_tx(message)
-            self.device.char_write_handle_long(self.ps_gdio_handle, message, self.chunk_size, True)
+            #self.device.char_write_handle_long(self.ps_gdio_handle, message, self.chunk_size, True)
+            self.device.char_write_handle(self.ps_gdio_handle, message, self.chunk_size, True)
     
     
     def unencrypted_segment(self, handle, message):
