@@ -39,6 +39,10 @@ def u8_unpack(i):
 def s16_unpack(i):
     return (struct.unpack("h", i)[0]) 
   
+def string_unpack(i):
+    strlen = i.find('\0')
+    return (struct.unpack("%ds" % strlen, i[:strlen])[0])
+
 def pack_u32(i):
     return (struct.pack("I", i))
   

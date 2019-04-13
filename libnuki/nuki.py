@@ -275,39 +275,57 @@ class Nuki(object):
     
     def get_config(self):
         retval    = True
-        sl_config = {}
+        id	      = 0
+        name	  = ""
 
         #==============================================================================
         # Request SL config
         #==============================================================================
         bt = BLEClient(self.auth_id, self.key, self.port)
         bt.connect(self.mac_addr)
-        
-        # send request SL states
-        log.debug('request SL states' )
-        message = cmd.config_request_encode()
+
+        # send challenge request
+        log.debug('request challenge' )
+        message = cmd.challenge_request(self.auth_id, self.key)
         bt.send_encrypted(message)
         
-        # receive SL states
+        # receive sl challenge
         auth_id, message, decrypted = bt.get_encrypted()
         cmd_id = cmd.get_cmd_id(message)
-        
+
+        if( (0x0004 == cmd_id) and (True == retval) ):
+            log.debug('SL challenge received' )
+            nonce_k = cmd.challenge_decode(message)
+
+            # send request SL states
+            log.debug('request SL states' )
+            message = cmd.config_request_encode(nonce_k)
+            bt.send_encrypted(message)
+
+            # receive SL states
+            auth_id, message, decrypted = bt.get_encrypted()
+            cmd_id = cmd.get_cmd_id(message)
+        else:
+            log.debug('Nuki error: no challenge received' )
+            retval = False
+
+
         if( (0x0015 == cmd_id) and (True == retval) ):
             # SL state received
             log.debug('SL config received' )
-            sl_config = cmd.config_decode(message)
+            id, name = cmd.config_decode(message)
         else:
             # no SL state received
             log.debug('Nuki error: no Nuki config received' )
             retval = False
-        
+
         if( False == retval):
             # error handler
             log.debug( 'Nuki error handler' )
             self._err_handler(cmd_id, message)
             
         bt.stop()
-        return retval, sl_config
+        return retval, id, name
     
     
     def get_states(self):

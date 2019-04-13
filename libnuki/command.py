@@ -154,16 +154,19 @@ def error_report_decode(message):
     command    = utils.u16_unpack(command)
     return error_code, command
 
-def config_request_encode():
+def config_request_encode(nonce_k):
     cmd_id     = 0x0014
     cmd_id     = utils.pack_u16(cmd_id)
-    message = cmd_id
+    message = cmd_id + nonce_k
     return message
 
 def config_decode(message):
-    #cmd_id     = 0x0011
-    sl_config = {}
-    return sl_config
+    #cmd_id     = 0x0015
+    id          = message[2:6]
+    name	= message[6:38]
+    id          = utils.u32_unpack(id)
+    name        = utils.string_unpack(name)
+    return id, name
 
 def authorization_id_confirmation(auth_id, nonce_abf, key):
     cmd_id  = 0x001E

@@ -343,6 +343,22 @@ class RequestHandler(object):
             result = ({'success': retval, 'errorCode': err_code, 'errorCmd': err_cmd})
         
         return json.dumps(result)
+
+    @cherrypy.expose
+    def config(self, nukiId, token=None):
+        self._grant_access(token)
+
+        n = self._get_nuki_by_id(nukiId)
+
+        retval, id, name = n.get_config()
+
+        if( True == retval ):
+            result = ({'id': id, 'name': name})
+        else:
+            err_code, err_cmd = n.get_error()
+            result = ({'success': retval, 'errorCode': err_code, 'errorCmd': err_cmd})
+
+        return json.dumps(result)
     
     
     @cherrypy.expose
