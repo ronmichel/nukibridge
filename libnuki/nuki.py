@@ -361,6 +361,8 @@ class Nuki(object):
         nuki_state = 0
         lock_state = 0
         trigger    = 0
+        sl_time    = 0
+        sl_time_z  = 0
         bat        = 0
 
         #==============================================================================
@@ -394,7 +396,7 @@ class Nuki(object):
             
         bt.stop()
             
-        return retval, nuki_state, lock_state, trigger, bat
+        return retval, nuki_state, lock_state, trigger, sl_time, sl_time_z, bat
     
     
     def update_time(self, sec_pin):

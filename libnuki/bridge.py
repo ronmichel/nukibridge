@@ -17,6 +17,7 @@ import os.path
 import json
 import re
 import time
+from datetime import timedelta, tzinfo
 import logging
 from binascii import hexlify, a2b_hex
 
@@ -334,11 +335,12 @@ class RequestHandler(object):
         for sl in list:
             n = self._get_nuki_by_id(sl['nukiId'])
             if n.isNewNukiStateAvailable():
-               retval, nuki_state, lock_state, trigger, bat = n.get_states()
+               retval, nuki_state, lock_state, trigger, sl_time, sl_time_z, bat = n.get_states()
                if( True == retval ):
                    bat = bat2word[bat]
                    lock_state_name = ls2word[lock_state]
-                   result = ({'state': lock_state, 'stateName': lock_state_name, 'batteryCritical': bat, 'success': retval})
+                   sl_time += timedelta(minutes=sl_time_z)
+                   result = ({'state': lock_state, 'stateName': lock_state_name, 'batteryCritical': bat, 'success': retval, 'timestamp': sl_time.strftime("%Y-%m-%dT%H:%M:%S")})
                    self.br.add_lock_state(sl['nukiId'], result)
 
     
@@ -348,12 +350,13 @@ class RequestHandler(object):
         
         n = self._get_nuki_by_id(nukiId)
         
-        retval, nuki_state, lock_state, trigger, bat = n.get_states()
+        retval, nuki_state, lock_state, trigger, sl_time, sl_time_z, bat = n.get_states()
         
         if( True == retval ):
             bat = bat2word[bat]
             lock_state_name = ls2word[lock_state]
-            result = ({'state': lock_state, 'stateName': lock_state_name, 'batteryCritical': bat, 'success': retval})
+            sl_time += timedelta(minutes=sl_time_z)
+            result = ({'state': lock_state, 'stateName': lock_state_name, 'batteryCritical': bat, 'success': retval, 'timestamp': sl_time.strftime("%Y-%m-%dT%H:%M:%S")})
         else:
             err_code, err_cmd = n.get_error()
             result = ({'success': retval, 'errorCode': err_code, 'errorCmd': err_cmd})
@@ -490,7 +493,7 @@ class RequestHandler(object):
         retval = n.update_time(nukiPin)
         
         if( True == retval ):
-            retval, nuki_state, lock_state, trigger, bat = n.get_states()
+            retval, nuki_state, lock_state, trigger, sl_time, sl_time_z, bat = n.get_states()
             
         if( True == retval ):
             bat = bat2word[bat]

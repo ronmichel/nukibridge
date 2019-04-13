@@ -108,11 +108,22 @@ def get_time():
 
 def decode_time(time):
     year   = time[0:2]
+    month  = time[2:3]
+    day    = time[3:4]
+    hour   = time[4:5]
+    minute = time[5:6]
+    second = time[6:7]
+    print "YEAR"
     year   = u16_unpack(year)
-    year   = le2be16(year)
-    year   = pack_u16(year)
-    time = (year + time[2:7])
-    return time
+    month  = u8_unpack(month)
+    day    = u8_unpack(day)
+    hour   = u8_unpack(hour)
+    minute = u8_unpack(minute)
+    second = u8_unpack(second)
+    #date = datetime.datetime.strptime(time[0:7], "%Y%m%d%H%M%S")
+    #print date
+    t = datetime.datetime(year, month, day, hour, minute, second, 0)
+    return t
 
 
 class CRCCCITT(object):
