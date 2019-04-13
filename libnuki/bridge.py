@@ -123,7 +123,6 @@ class RequestHandler(object):
             </form>
             <form method="get" action="nukiPair_html">
               <p>Connect to Nuki SmartLock:</p>
-              <p><input type="text" value="Nuki Name" name="nukiName" /></p>
               <p><input type="text" value="00:00:00:00:00:00" name="nukiMac" /></p>
               <button type="submit">Connect</button><br><br><br>
             </form>
@@ -401,51 +400,29 @@ class RequestHandler(object):
     
     
     @cherrypy.expose
-    def nukiPair(self, nukiName, nukiMac, token=None):
+    def nukiPair(self, nukiMac, token=None):
         self._grant_access(token)   
-    
-        retval = self.br.check_sl_name(nukiName)
             
-        if( False == retval ):
-            raise cherrypy.HTTPError(400)
-        
         retval = self._check_mac_format(nukiMac)
-            
+
         if( False == retval ):
             raise cherrypy.HTTPError(400)
         
         n = self._get_nuki(nukiMac)
-        retval, sl_auth_id, sl_uuid, sl_key = n.authorize()
-        
+        retval, sl_auth_id, sl_uuid, sl_key, nuki_id, nukiName = n.authorize()
+
         if( True == retval ):
-            retval, sl_id = self.br.add_sl(sl_auth_id, sl_uuid, sl_key, nukiMac, nukiName)
+            retval, sl_id = self.br.add_sl(sl_auth_id, sl_uuid, sl_key, nukiMac, nuki_id, nukiName)
             result = ({'success': retval, 'nukiId': sl_id, 'name': nukiName})
         else:
             err_code, err_cmd = n.get_error()
             result = ({'success': retval, 'errorCode': err_code, 'errorCmd': err_cmd})
-            
         return json.dumps(result)
     
     
     @cherrypy.expose
-    def nukiPair_html(self, nukiName, nukiMac, token=None):
+    def nukiPair_html(self, nukiMac, token=None):
         self._grant_access(token)   
-    
-        retval = self.br.check_sl_name(nukiName)
-        
-        if( False == retval ):
-            response = """
-            <html>
-              <head>
-              </head>
-              <body>
-                <form method="get" action="index">
-                  <p>\"""" + nukiName + """\" is already connected.</p>
-                  <button type="submit">Back</button><br>
-                </form>
-              </body>
-            </html>"""
-            return response
         
         retval = self._check_mac_format(nukiMac)
             
@@ -464,10 +441,10 @@ class RequestHandler(object):
             return response
         
         n = self._get_nuki(nukiMac)
-        retval, sl_auth_id, sl_uuid, sl_key = n.authorize()
+        retval, sl_auth_id, sl_uuid, sl_key, nuki_id, nukiName = n.authorize()
         
         if( True == retval ):
-            retval, sl_id = self.br.add_sl(sl_auth_id, sl_uuid, sl_key, nukiMac, nukiName)
+            retval, sl_id = self.br.add_sl(sl_auth_id, sl_uuid, sl_key, nukiMac, nuki_id, nukiName)
             
             response = """
             <html>
@@ -625,9 +602,6 @@ class BridgeAdmin(object):
         
         retval = True
         
-        if( 0 == self.list['sl_total']):
-            return retval
-        
         sl_list  = self.list['sl_list']
     
         for item in sl_list:            
@@ -641,7 +615,7 @@ class BridgeAdmin(object):
         
         retval = True
         
-        if ( 0 != self.list['sl_total'] ):
+        if ( 0 != length(self.list['sl_list']) ):
             # cannot change in case a SL is already associated with the current bridge data
             self.err_code = 0x50
             self.command  = 0xFFFF
@@ -669,13 +643,12 @@ class BridgeAdmin(object):
         sl_list  = self.list['sl_list']
         sl_data  = self.list['sl_data']
         br_data  = self.list['br_data']
-        sl_total = self.list['sl_total']
 
         for sl in sl_list:
             if sl['nukiId'] == nukiId:
                 sl.update({'lastKnownState': state})
 
-        self.list = ({'sl_total': sl_total, 'br_data': br_data, 'sl_list': sl_list, 'sl_data': sl_data})
+        self.list = ({'br_data': br_data, 'sl_list': sl_list, 'sl_data': sl_data})
         self._save_list()
 
     def get_sl(self, sl_id):
@@ -686,14 +659,14 @@ class BridgeAdmin(object):
         sl_name     = ''
         sl_mac_addr = ''
             
-        if( (0 != sl_id) and ( sl_id <= self.list['sl_total']) ):        
-            sl_id = sl_id-1
-            sl_data     = self.list['sl_data']
-            sl_auth_id  = sl_data[sl_id]['sl_auth_id']
-            sl_key      = sl_data[sl_id]['sl_key']
-            sl_uuid     = sl_data[sl_id]['sl_uuid']
-            sl_name     = sl_data[sl_id]['name']
-            sl_mac_addr = sl_data[sl_id]['sl_mac_addr']
+        for sl_data in self.list['sl_data']:
+            if sl_id != sl_data['nukiId']:
+                continue;
+            sl_auth_id  = sl_data['sl_auth_id']
+            sl_key      = sl_data['sl_key']
+            sl_uuid     = sl_data['sl_uuid']
+            sl_name     = sl_data['name']
+            sl_mac_addr = sl_data['sl_mac_addr']
         
             sl_uuid    = a2b_hex(sl_uuid)
             sl_key     = a2b_hex(sl_key)
@@ -701,22 +674,17 @@ class BridgeAdmin(object):
         return sl_auth_id, sl_key, sl_uuid, sl_mac_addr, sl_name
     
     
-    def add_sl(self, sl_auth_id, sl_uuid, sl_key, sl_mac_addr, sl_name=''):
+    def add_sl(self, sl_auth_id, sl_uuid, sl_key, sl_mac_addr, sl_id, sl_name=''):
         
         sl_list  = self.list['sl_list']
         sl_data  = self.list['sl_data']
         br_data  = self.list['br_data']
-        sl_total = self.list['sl_total']
-        sl_id = 0
         
         # check for unique name
         retval = self.check_sl_name(sl_name)
         
         if( False == retval ):
             return retval, sl_id
-
-        sl_id = sl_total + 1
-        sl_total = sl_total + 1
         
         if( '' == sl_name):
             sl_name = 'Nuki_'+str(sl_id)
@@ -727,7 +695,7 @@ class BridgeAdmin(object):
         sl_list.append({'nukiId': sl_id, 'name': sl_name})
         sl_data.append({'nukiId': sl_id, 'name': sl_name, 'sl_mac_addr': sl_mac_addr, 'sl_auth_id': sl_auth_id, 'sl_key': sl_key, 'sl_uuid': sl_uuid})
     
-        self.list = ({'sl_total': sl_total, 'br_data': br_data, 'sl_list': sl_list, 'sl_data': sl_data})
+        self.list = ({'br_data': br_data, 'sl_list': sl_list, 'sl_data': sl_data})
         self._save_list()
         
         return retval, sl_id
@@ -740,7 +708,6 @@ class BridgeAdmin(object):
         sl_list  = self.list['sl_list']
         sl_data  = self.list['sl_data']
         br_data  = self.list['br_data']
-        sl_total = self.list['sl_total']
         
         # remove entry
         i = 0
@@ -748,7 +715,6 @@ class BridgeAdmin(object):
             if( sl_name == item['name'] ):
                 del sl_list[i]
                 del sl_data[i]
-                sl_total = sl_total - 1
                 retval = True
                 break
             i = i+1
@@ -761,7 +727,7 @@ class BridgeAdmin(object):
                 sl_data[i]['nukiId'] = i+1
                 i = i+1
                 
-                self.list = ({'br_data': br_data, 'sl_total': sl_total, 'sl_list': sl_list, 'sl_data': sl_data})
+                self.list = ({'br_data': br_data, 'sl_list': sl_list, 'sl_data': sl_data})
                 self._save_list()
         
         return retval
@@ -777,7 +743,6 @@ class BridgeAdmin(object):
 
         sl_list = []
         sl_data = []
-        sl_total = 0
         
         if( None == br_id ):
             br_id = randint(0x00000000, 0xFFFFFFFF)
@@ -786,7 +751,7 @@ class BridgeAdmin(object):
             
         br_data = ({'br_id': br_id, 'br_name': br_name})
     
-        self.list = ({'br_data': br_data, 'sl_total': sl_total, 'sl_list': sl_list, 'sl_data': sl_data})
+        self.list = ({'br_data': br_data, 'sl_list': sl_list, 'sl_data': sl_data})
         self._save_list()
         
         return 

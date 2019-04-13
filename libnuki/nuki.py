@@ -192,10 +192,11 @@ class Nuki(object):
             # error handler
             log.debug( 'Nuki error handler' )
             self._err_handler(cmd_id, message)
-            
         bt.stop()
+
+        retval, id, name = self.get_config()
             
-        return retval, self.auth_id, uuid, self.key
+        return retval, self.auth_id, uuid, self.key, id, name
     
     
     def lock_action(self, lock_action, auto_Unlock=False, force_unlock=False):
