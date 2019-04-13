@@ -60,13 +60,18 @@ class NukiBridge(object):
         # set port
         cherrypy.server.socket_port = self.port
         # start server        
-        cherrypy.tree.mount(RequestHandler(self.allowed_ip, self.token, self.agent, self.stop), "/")
+        handler = RequestHandler(self.allowed_ip, self.token, self.agent, self.stop)
+        cherrypy.tree.mount(handler, "/")
         cherrypy.engine.start()
         self.bridge_run = True
         
         if( True == block ):
             while(self.bridge_run):
-                time.sleep(0.1)
+                time.sleep(1)
+                try:
+                    handler.checkForNewState()
+                except:
+                    log.debug("checking for new state failed")
             
         return
 
@@ -324,7 +329,19 @@ class RequestHandler(object):
             </html>"""
         
         return response
-    
+
+    def checkForNewState(self):
+        list = self.br.get_sl_list()
+        for sl in list:
+            n = self._get_nuki_by_id(sl['nukiId'])
+            if n.isNewNukiStateAvailable():
+               retval, nuki_state, lock_state, trigger, bat = n.get_states()
+               if( True == retval ):
+                   bat = bat2word[bat]
+                   lock_state_name = ls2word[lock_state]
+                   result = ({'state': lock_state, 'stateName': lock_state_name, 'batteryCritical': bat, 'success': retval})
+                   self.br.add_lock_state(sl['nukiId'], result)
+
     
     @cherrypy.expose
     def lockState(self, nukiId, token=None):
@@ -648,7 +665,19 @@ class BridgeAdmin(object):
     def get_sl_list(self):
         return self.list['sl_list']
     
-    
+    def add_lock_state(self, nukiId, state):
+        sl_list  = self.list['sl_list']
+        sl_data  = self.list['sl_data']
+        br_data  = self.list['br_data']
+        sl_total = self.list['sl_total']
+
+        for sl in sl_list:
+            if sl['nukiId'] == nukiId:
+                sl.update({'lastKnownState': state})
+
+        self.list = ({'sl_total': sl_total, 'br_data': br_data, 'sl_list': sl_list, 'sl_data': sl_data})
+        self._save_list()
+
     def get_sl(self, sl_id):
 
         sl_auth_id  = ''
