@@ -387,7 +387,7 @@ class RequestHandler(object):
         n = self._get_nuki_by_id(nukiId) 
         
         action = int(action)
-        if( 5 < action ):
+        if( action < 1 or 5 < action ):
             raise cherrypy.HTTPError(400)
         
         retval, bat = n.lock_action(action)
