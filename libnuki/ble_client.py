@@ -76,8 +76,9 @@ class BLEClient(BLEAdapter):
         self.device = self.adapter.connect(mac_addr, timeout)
 
         try:
-            self.ps_gdio_handle = self.device.get_handle(ktps_gdio_uuid)
-            self.device.subscribe(ktps_gdio_uuid, self.unencrypted_segment, True)
+            self.ps_gdio_handle = 0x8b
+            #self.ps_gdio_handle = self.device.get_handle(ktps_gdio_uuid)
+            self.device.subscribe_handle(self.ps_gdio_handle, self.unencrypted_segment, True)
         except:
             #un-encrypted data service
             log.debug('BLEAdapter error: cannot subscribe to KTPS GDIO')
@@ -85,21 +86,23 @@ class BLEClient(BLEAdapter):
 
         try:
             #encrypted data service
-            self.kts_usido_handle = self.device.get_handle(kts_usdio_uuid)
-            self.device.subscribe(kts_usdio_uuid, self.encrypted_segment, True)
+            self.kts_usido_handle = 0x92
+            #self.kts_usido_handle = self.device.get_handle(kts_usdio_uuid)
+            self.device.subscribe_handle(self.kts_usido_handle, self.encrypted_segment, True)
         except:
             log.debug('BLEAdapter error: cannot subscribe to KTS USDIO')
             self.kts_usido_handle = None
+        log.debug("AFTER HANDLE")
         return
     
     
     def stop(self):
         try:
-            self.device.unsubscribe(ktps_gdio_uuid)
+            self.device.unsubscribe_handle(self.ps_gdio_handle)
         except:
             pass
         try:
-            self.device.unsubscribe(kts_usdio_uuid)
+            self.device.unsubscribe_handle(self.kts_usdio_handle)
         except:
             pass
         try:

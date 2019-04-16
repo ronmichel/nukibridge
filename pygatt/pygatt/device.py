@@ -159,6 +159,12 @@ class BLEDevice(object):
         value_handle, characteristic_config_handle = (
             self._notification_handles(uuid)
         )
+        self.subscribe_handle(value_handle, callback, indication)
+
+
+    def subscribe_handle(self, value_handle, callback=None, indication=False):
+
+        characteristic_config_handle = value_handle + 1
 
         properties = bytearray([
             0x2 if indication else 0x1,
@@ -175,10 +181,11 @@ class BLEDevice(object):
                     properties,
                     wait_for_response=False
                 )
-                log.info("Subscribed to uuid=%s", uuid)
+                log.info("Subscribed to handle=%s", value_handle)
                 self._subscribed_handlers[value_handle] = properties
             else:
-                log.debug("Already subscribed to uuid=%s", uuid)
+                log.debug("Already subscribed to handle=%s", value_handle)
+
 
     def unsubscribe(self, uuid):
         """
@@ -187,6 +194,11 @@ class BLEDevice(object):
         value_handle, characteristic_config_handle = (
             self._notification_handles(uuid)
         )
+        self.unsubscribe_handle(value_handle)
+
+    def unsubscribe_handle(self, value_handle):
+
+        characteristic_config_handle = value_handle + 1
 
         properties = bytearray([0x0, 0x0])
 
@@ -200,9 +212,9 @@ class BLEDevice(object):
                     properties,
                     wait_for_response=False
                 )
-                log.info("Unsubscribed from uuid=%s", uuid)
+                log.info("Unsubscribed from handle=%s", value_handle)
             else:
-                log.debug("Already unsubscribed from uuid=%s", uuid)
+                log.debug("Already unsubscribed from handle=%s", value_handle)
 
     def get_handle(self, char_uuid):
         """
