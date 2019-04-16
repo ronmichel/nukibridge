@@ -146,6 +146,7 @@ class RequestHandler(object):
     
     
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     def bridgeInfo(self, token=None):
         self._grant_access(token) 
         
@@ -154,10 +155,11 @@ class RequestHandler(object):
         
         result = ({'bridgeId': br_id, 'bridgeName': br_name})
         
-        return json.dumps(result)
+        return result
     
     
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     def bridgeConfig(self, bridgeId, bridgeName, token=None):
         self._grant_access(token) 
         
@@ -185,7 +187,7 @@ class RequestHandler(object):
             err_code, err_cmd = self.br.get_error()
             result = ({'success': retval, 'errorCode': err_code, 'errorCmd': err_cmd})
             
-        return json.dumps(result)
+        return result
         
         
     @cherrypy.expose
@@ -285,11 +287,12 @@ class RequestHandler(object):
     
     
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     def list(self, token=None):
         self._grant_access(token) 
                      
         result = self.br.get_sl_list()
-        return json.dumps(result)
+        return result
     
     
     @cherrypy.expose
@@ -335,16 +338,16 @@ class RequestHandler(object):
         for sl in list:
             n = self._get_nuki_by_id(sl['nukiId'])
             if n.isNewNukiStateAvailable():
-               retval, nuki_state, lock_state, trigger, sl_time, sl_time_z, bat = n.get_states()
-               if( True == retval ):
-                   bat = bat2word[bat]
-                   lock_state_name = ls2word[lock_state]
-                   sl_time += timedelta(minutes=sl_time_z)
-                   result = ({'state': lock_state, 'stateName': lock_state_name, 'batteryCritical': bat, 'success': retval, 'timestamp': sl_time.strftime("%Y-%m-%dT%H:%M:%S")})
-                   self.br.add_lock_state(sl['nukiId'], result)
-
+                retval, nuki_state, lock_state, trigger, sl_time, sl_time_z, bat = n.get_states()
+                if( True == retval ):
+                    bat = bat2word[bat]
+                    lock_state_name = ls2word[lock_state]
+                    sl_time += timedelta(minutes=sl_time_z)
+                    result = ({'state': lock_state, 'stateName': lock_state_name, 'batteryCritical': bat, 'success': retval, 'timestamp': sl_time.strftime("%Y-%m-%dT%H:%M:%S")})
+                    self.br.add_lock_state(sl['nukiId'], result)
     
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     def lockState(self, nukiId, token=None):
         self._grant_access(token) 
         
@@ -361,9 +364,10 @@ class RequestHandler(object):
             err_code, err_cmd = n.get_error()
             result = ({'success': retval, 'errorCode': err_code, 'errorCmd': err_cmd})
         
-        return json.dumps(result)
+        return result
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     def config(self, nukiId, token=None):
         self._grant_access(token)
 
@@ -377,10 +381,11 @@ class RequestHandler(object):
             err_code, err_cmd = n.get_error()
             result = ({'success': retval, 'errorCode': err_code, 'errorCmd': err_cmd})
 
-        return json.dumps(result)
+        return result
     
     
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     def lockAction(self, nukiId, action, token=None):
         self._grant_access(token) 
                   
@@ -399,10 +404,11 @@ class RequestHandler(object):
             err_code, err_cmd = n.get_error()
             result = ({'success': retval, 'errorCode': err_code, 'errorCmd': err_cmd})
         
-        return json.dumps(result)
+        return result
     
     
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     def nukiPair(self, nukiMac, token=None):
         self._grant_access(token)   
             
@@ -420,7 +426,7 @@ class RequestHandler(object):
         else:
             err_code, err_cmd = n.get_error()
             result = ({'success': retval, 'errorCode': err_code, 'errorCmd': err_cmd})
-        return json.dumps(result)
+        return result
     
     
     @cherrypy.expose
