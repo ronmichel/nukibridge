@@ -45,6 +45,8 @@ ADV_SCAN_IND=0x02
 ADV_NONCONN_IND=0x03
 ADV_SCAN_RSP=0x04
 
+def le_handle_connection_complete(pkt):
+    foo = 0
 
 def returnnumberpacket(pkt):
     myInteger = 0
