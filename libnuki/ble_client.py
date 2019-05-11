@@ -72,8 +72,14 @@ class BLEClient(BLEAdapter):
         if( False == self.connected ):
             return
             
-        timeout = 20
-        self.device = self.adapter.connect(mac_addr, timeout)
+        retries = 1
+        timeout = 5
+        while( retries ):
+            try:
+                self.device = self.adapter.connect(mac_addr, timeout)
+                retries = 0
+            except:
+                retries -= 1
 
         try:
             self.ps_gdio_handle = 0x8b
@@ -92,7 +98,6 @@ class BLEClient(BLEAdapter):
         except:
             log.debug('BLEAdapter error: cannot subscribe to KTS USDIO')
             self.kts_usido_handle = None
-        log.debug("AFTER HANDLE")
         return
     
     

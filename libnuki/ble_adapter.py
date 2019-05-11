@@ -74,7 +74,13 @@ class BLEAdapter(object):
             log.debug( 'send encrypted: ' + hexlify(message))
             message = self._format_tx(message)
             #self.device.char_write_handle_long(self.kts_usido_handle, message, self.chunk_size, True)
-            self.device.char_write_handle(self.kts_usido_handle, message, self.chunk_size, True)
+            retries = 1
+            while (retries):
+                try:
+                    self.device.char_write_handle(self.kts_usido_handle, message, self.chunk_size, True)
+                    retries = 0
+                except:
+                    retries -= 1
 
 
     def send_unencrypted(self, message, wait_for_response=True):
