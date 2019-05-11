@@ -34,11 +34,13 @@ kts_usdio_uuid          = 'a92ee202-5501-11e4-916c-0800200c9a66'
 
 class BLEClient(BLEAdapter):
     
-    def __init__(self, auth_id=None, key=None, port=None):
+    def __init__(self, auth_id=None, key=None, port=None, bgapi=False):
         self.auth_id = auth_id
         self.key     = key
-        self.adapter = pygatt.GATTToolBackend()
-        #self.adapter = pygatt.BGAPIBackend(serial_port=port)
+        if bgapi:
+            self.adapter = pygatt.BGAPIBackend(serial_port=port)
+        else:
+            self.adapter = pygatt.GATTToolBackend()
         """
         reset_on_start = True
         retries        = 5

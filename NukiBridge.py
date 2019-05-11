@@ -24,6 +24,18 @@ set_environment(dir_path)
 
 from bridge import NukiBridge
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+
+"""
+Specify which bluetooth driver should be used. By default the bluez API is used.
+If your bluetooth dongle supports the BGAPI. Set this to true.
+
+Examples:
+bt_bgapi = True # Use the BGAPI
+"""
+bt_bgapi = False
 
 """
 Specify the port the Nuki Bridge uses
@@ -155,7 +167,7 @@ http://localhost:8080/lockAction?nukiId=1&action=1&token=a34f42
 
 
 if __name__ == '__main__':
-    nb = NukiBridge(nb_port, nb_allowed_ip, nb_token, nb_agent)
+    nb = NukiBridge(nb_port, nb_allowed_ip, nb_token, nb_agent, bt_bgapi)
     nb.start(nb_block)
 
     print'end'

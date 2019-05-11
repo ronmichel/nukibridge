@@ -55,7 +55,7 @@ def retry(func):
 
 class Nuki(object):
 
-    def __init__(self, bridge_id, bridge_name, mac_addr, auth_id=0, key='', port=None):
+    def __init__(self, bridge_id, bridge_name, mac_addr, auth_id=0, key='', port=None, bgapi=False):
         self.id_type   = 0x01
         self.bridge_id = bridge_id
         self.name      = bridge_name
@@ -66,6 +66,7 @@ class Nuki(object):
         self.err_code  = 0xFF
         self.command   = 0xFFFF
         self.port      = port
+        self.bgapi     = bgapi
         return
 
     def isNewNukiStateAvailable(self):
@@ -106,7 +107,7 @@ class Nuki(object):
         key = ''
         nonce_abf = None
 
-        bt = BLEClient(port=self.port)
+        bt = BLEClient(port=self.port, bgapi=self.bgapi)
         bt.connect(self.mac_addr)
         
         #==============================================================================
@@ -235,7 +236,7 @@ class Nuki(object):
         retval = True
         bat    = 0
 
-        bt = BLEClient(self.auth_id, self.key, self.port)
+        bt = BLEClient(self.auth_id, self.key, self.port, bgapi=self.bgapi)
         bt.connect(self.mac_addr)
         
         flags = 0x00
@@ -342,7 +343,7 @@ class Nuki(object):
         #==============================================================================
         # Request SL config
         #==============================================================================
-        bt = BLEClient(self.auth_id, self.key, self.port)
+        bt = BLEClient(self.auth_id, self.key, self.port, bgapi=self.bgapi)
         bt.connect(self.mac_addr)
 
         # send challenge request
@@ -402,7 +403,7 @@ class Nuki(object):
         #==============================================================================
         # Request SL status
         #==============================================================================
-        bt = BLEClient(self.auth_id, self.key, self.port)
+        bt = BLEClient(self.auth_id, self.key, self.port, bgapi=self.bgapi)
         bt.connect(self.mac_addr)
         
         # send request SL states
@@ -437,7 +438,7 @@ class Nuki(object):
     def update_time(self, sec_pin):
         retval = True
 
-        bt = BLEClient(self.auth_id, self.key, self.port)
+        bt = BLEClient(self.auth_id, self.key, self.port, bgapi=self.bgapi)
         bt.connect(self.mac_addr)
         
         # send challenge request
@@ -484,7 +485,7 @@ class Nuki(object):
         critical_battery_state = 0
         battery_voltage        = 0
 
-        bt = BLEClient(self.auth_id, self.key, self.port)
+        bt = BLEClient(self.auth_id, self.key, self.port, bgapi=self.bgapi)
         bt.connect(self.mac_addr)
         
         # send battery report request

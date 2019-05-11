@@ -41,14 +41,14 @@ bat2word = {0x00: False, 0x01: True}
 PORT = None
 #PORT = "/dev/ttyACM0"
 
-  
 class NukiBridge(object):
     
-    def __init__(self, port, allowed_ip, token, agent):
+    def __init__(self, port, allowed_ip, token, agent, bgapi):
         self.port       = port
         self.allowed_ip = allowed_ip
         self.token      = token
         self.agent      = agent
+        self.bgapi      = bgapi
         self.bridge_run = False
         return
     
@@ -61,7 +61,7 @@ class NukiBridge(object):
         # set port
         cherrypy.server.socket_port = self.port
         # start server        
-        handler = RequestHandler(self.allowed_ip, self.token, self.agent, self.stop)
+        handler = RequestHandler(self.allowed_ip, self.token, self.agent, self.stop, self.bgapi)
         cherrypy.tree.mount(handler, "/")
         cherrypy.engine.start()
         self.bridge_run = True
@@ -92,12 +92,13 @@ class RequestHandler(object):
 
     """ Cherrypy request handler class. """
     
-    def __init__(self, allowed_ip, token, agent, stop=None):
+    def __init__(self, allowed_ip, token, agent, stop=None, bgapi=False):
         self.br          = BridgeAdmin()   
         self.allowed_ip  = allowed_ip  
         self.token       = token
         self.agent       = agent
         self.server_stop = stop
+        self.bgapi       = bgapi
         return
     
     
@@ -535,7 +536,7 @@ class RequestHandler(object):
 
         sl_auth_id, sl_key, sl_uuid, mac_addr, sl_name = self.br.get_sl(int(sl_id))
         if( '' != sl_auth_id ):
-            smart_lock = Nuki(br_id, br_name, mac_addr, sl_auth_id, sl_key, port=PORT)
+            smart_lock = Nuki(br_id, br_name, mac_addr, sl_auth_id, sl_key, port=PORT, bgapi=self.bgapi)
         else:
             raise cherrypy.HTTPError(404)
 
@@ -546,7 +547,7 @@ class RequestHandler(object):
         br_id   = self.br.get_id()
         br_name = self.br.get_name()
                      
-        smart_lock = Nuki(br_id, br_name, sl_mac_addr, port=PORT)
+        smart_lock = Nuki(br_id, br_name, sl_mac_addr, port=PORT, bgapi=self.bgapi)
 
         return smart_lock
     
