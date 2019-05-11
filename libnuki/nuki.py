@@ -26,6 +26,32 @@ import bluetooth._bluetooth as bluez
 
 log = logging.getLogger(__name__)
 
+from threading import Thread, Lock
+
+mutex = Lock()
+
+def lock(func):
+   def func_wrapper(*args, **kwargs):
+       mutex.acquire()
+       try:
+           ret = func(*args, **kwargs)
+       finally:
+           mutex.release()
+       return ret
+   return func_wrapper
+
+def retry(func):
+   def func_wrapper(*args, **kwargs):
+       retries = 5
+       while (retries):
+           ret = func(*args, **kwargs)
+           if ret[0]:
+               return ret
+           else:
+               retries -= 1
+               time.sleep(1)
+       return ret
+   return func_wrapper
 
 class Nuki(object):
 
@@ -41,14 +67,16 @@ class Nuki(object):
         self.command   = 0xFFFF
         self.port      = port
         return
-    
+
     def isNewNukiStateAvailable(self):
+        if mutex.locked():
+            return
         dev_id = 0
         try:
             sock = bluez.hci_open_dev(dev_id)
         except:
             print "error accessing bluetooth device..."
-            sys.exit(1)
+            return
         blescan.hci_le_set_scan_parameters(sock)
         blescan.hci_enable_le_scan(sock)
         returnedList = blescan.parse_events(sock, 10)
@@ -68,6 +96,8 @@ class Nuki(object):
         print "isNewNukiStateAvailable() -> result=%d" % newStateAvailable
         return newStateAvailable
 
+    @retry
+    @lock 
     def authorize(self):
         
         retval = True
@@ -199,6 +229,8 @@ class Nuki(object):
         return retval, self.auth_id, uuid, self.key, id, name
     
     
+    @retry
+    @lock 
     def lock_action(self, lock_action, auto_Unlock=False, force_unlock=False):
         retval = True
         bat    = 0
@@ -300,7 +332,8 @@ class Nuki(object):
         
         return retval, bat
     
-    
+    @retry
+    @lock 
     def get_config(self):
         retval    = True
         id	      = 0
@@ -355,7 +388,8 @@ class Nuki(object):
         bt.stop()
         return retval, id, name
     
-    
+    @retry
+    @lock 
     def get_states(self):
         retval     = True
         nuki_state = 0
@@ -398,7 +432,8 @@ class Nuki(object):
             
         return retval, nuki_state, lock_state, trigger, sl_time, sl_time_z, bat
     
-    
+    @retry
+    @lock 
     def update_time(self, sec_pin):
         retval = True
 
@@ -442,7 +477,8 @@ class Nuki(object):
 
         return retval
     
-    
+    @retry
+    @lock 
     def get_battery_report(self):
         retval = True
         critical_battery_state = 0
