@@ -480,7 +480,7 @@ class GATTToolBackend(BLEBackend):
 
     @at_most_one_device
     def char_write_handle(self, handle, value, wait_for_response=False,
-                          timeout=60):
+                          timeout=1):
         """
         Writes a value to a given characteristic handle.
         :param handle:
@@ -496,7 +496,7 @@ class GATTToolBackend(BLEBackend):
         log.debug('Sending cmd=%s', cmd)
         if wait_for_response:
             try:
-                with self._receiver.event("char_written", timeout=60):
+                with self._receiver.event("char_written", timeout=10):
                     self.sendline(cmd)
             except NotificationTimeout:
                 log.error("No response received", exc_info=True)
