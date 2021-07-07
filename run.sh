@@ -1,1 +1,3 @@
-python3 -m http.server 8080
+#!/usr/bin/with-contenv bashio
+
+echo Hello world!
