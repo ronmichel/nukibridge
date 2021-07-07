@@ -7,5 +7,8 @@
   "startup": "application",
   "boot": "auto",
   "options": {},
-  "schema": {}
+  "schema": {},
+  "ports": {
+    "8080/tcp": 8080
+  }
 }
