@@ -76,25 +76,25 @@ class Nuki(object):
         try:
             sock = bluez.hci_open_dev(dev_id)
         except:
-            print "error accessing bluetooth device..."
+            print("error accessing bluetooth device...")
             return
         blescan.hci_le_set_scan_parameters(sock)
         blescan.hci_enable_le_scan(sock)
         returnedList = blescan.parse_events(sock, 10)
         newStateAvailable = 0
-        print "isNewNukiStateAvailable() -> search through %d received beacons..." % len(returnedList)
+        print("isNewNukiStateAvailable() -> search through %d received beacons..." % len(returnedList))
         for beacon in returnedList:
             beaconElements = beacon.split(',')
             if beaconElements[0] == self.mac_addr.lower() and beaconElements[1] == "a92ee200550111e4916c0800200c9a66":
-                print "Nuki beacon found, new state element: %s" % beaconElements[4]
+                print("Nuki beacon found, new state element: %s" % beaconElements[4])
                 if beaconElements[4] == '-60':
                     newStateAvailable = 0
                 else:
                     newStateAvailable = 1
                 break
             else:
-                print "non-Nuki beacon found: mac=%s, signature=%s" % (beaconElements[0],beaconElements[1])
-        print "isNewNukiStateAvailable() -> result=%d" % newStateAvailable
+                print("non-Nuki beacon found: mac=%s, signature=%s" % (beaconElements[0],beaconElements[1]))
+        print("isNewNukiStateAvailable() -> result=%d" % newStateAvailable)
         return newStateAvailable
 
     @retry
