@@ -51,7 +51,7 @@ def decrypt_rx(adata, key):
     message   = message[4:]
     
     if( msg_crc != crc_val ):
-        print "crc error: " + str(hex(crc_val))
+        print("crc error: " + str(hex(crc_val)))
         
     utils.verify_crc(decrypted)
 
@@ -77,7 +77,7 @@ def get_pdata(pdata):
     message = message[2:]
     
     if( msg_crc != crc_val ):
-        print "crc error: " + hexlify(crc_val)
+        print("crc error: " + hexlify(crc_val))
 
     return cmd_id, message
 
