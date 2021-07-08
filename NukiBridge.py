@@ -35,7 +35,7 @@ If your bluetooth dongle supports the BGAPI. Set this to true.
 Examples:
 bt_bgapi = True # Use the BGAPI
 """
-bt_bgapi = False
+bt_bgapi = True
 
 """
 Specify the port the Nuki Bridge uses
