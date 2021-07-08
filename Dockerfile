@@ -9,7 +9,7 @@ COPY * /
 RUN apk update && apk upgrade
 RUN apk add --no-cache python3=3.6.8-r0 py-pip --repository=http://dl-cdn.alpinelinux.org/alpine/v3.6/main
 RUN pip3 install six
-RUN pip3 install pynacl==1.2.1
+RUN pip3 install pynacl==1.0.1
 
 
 # Python 3 HTTP Server serves the current working dir
