@@ -12,7 +12,7 @@
   "devicetree": true,
   "host_dbus": true,
   "host_pid": true,
-  "startup": "application",
+  "startup": "before",
   "boot": "auto",
   "options": {},
   "schema": {},
