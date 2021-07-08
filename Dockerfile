@@ -7,7 +7,7 @@ ENV LANG C.UTF-8
 COPY * /
 # Install requirements for add-on
 RUN apk update && apk upgrade
-RUN apk add --no-cache python3=3.5.1-r0
+RUN apk add --no-cache python3=3.6.8-r0 --repository=http://dl-cdn.alpinelinux.org/alpine/v3.6/main
 
 # Python 3 HTTP Server serves the current working dir
 # So let's set it to our add-on persistent data directory.
