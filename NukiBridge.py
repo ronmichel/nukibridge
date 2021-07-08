@@ -170,4 +170,4 @@ if __name__ == '__main__':
     nb = NukiBridge(nb_port, nb_allowed_ip, nb_token, nb_agent, bt_bgapi)
     nb.start(nb_block)
 
-    print 'end'
+    print('end')
